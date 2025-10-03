@@ -156,13 +156,6 @@ Make sure that you're using dplyr and ggplot2 rather than base R for this task. 
 
 
 **Excercise 1: Distribution of numeric variables**
-```{r}
-```
-
-
-```{r}
-```
-
 
 ```{r}
 # Use smoothed density esitimates to visualize the distributions of some key features

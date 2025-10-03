@@ -439,7 +439,7 @@ grid.arrange(radius_mean_dist, area_mean_dist,
              ncol = 2, nrow = 2)
 ```
 
-![](mini-project-1_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
+![](mini-project-1_files/figure-gfm/unnamed-chunk-3-1.png)<!-- -->
 
 **Excercise 2: Create a new variable based on other variables in your
 data**
@@ -490,7 +490,7 @@ ggplot(cancer_sample, aes(x = radius_mean, y = area_mean, color = diagnosis)) +
   scale_color_manual(values = c("M" = "red", "B" = "blue"))
 ```
 
-![](mini-project-1_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
+![](mini-project-1_files/figure-gfm/unnamed-chunk-5-1.png)<!-- -->
 
 **Excercise 7: Make a new tibble with a subset of your data**
 
