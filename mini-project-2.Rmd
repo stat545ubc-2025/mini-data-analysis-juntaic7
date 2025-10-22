@@ -56,10 +56,13 @@ From Milestone 1, you should have an idea of the basic structure of your dataset
 First, write out the 4 research questions you defined in milestone 1 were. This will guide your work through milestone 2:
 
 <!-------------------------- Start your work below ---------------------------->
-1. *FILL_THIS_IN*
-2. *FILL_THIS_IN*
-3. *FILL_THIS_IN*
-4. *FILL_THIS_IN*
+**RQ1**: Do malignant tumors have significantly larger measurements (radius, area, perimeter) compared to benign tumors?
+
+**RQ2**: Are certain shape characteristics (concavity, symmetry, compactness) good indicators of tumor malignancy?
+
+**RQ3**: What is the critical threshold value for concavity that best separate malignant from benign tumors?
+
+**RQ4**: Will combination of measurements always improve separation between malignant and benign diagnoses?
 <!----------------------------------------------------------------------------->
 
 Here, we will investigate your data using various data manipulation and graphing functions.
@@ -92,6 +95,214 @@ Using variables and/or tables you made in one of the "Summarizing" tasks:
 Make sure it's clear what research question you are doing each operation for!
 
 <!------------------------- Start your work below ----------------------------->
+```{r}
+# Test dataloader
+glimpse(cancer_sample)
+```
+***RQ1***: Do malignant tumors have significantly larger measurements (radius, area, perimeter) compared to benign tumors?
+
+**Summarizing**
+```{r}
+area_summary <- cancer_sample %>%
+  group_by(diagnosis) %>%
+  summarise(
+    # Range
+    range = max(area_mean) - min(area_mean),
+    
+    # Mean
+    mean_area = mean(area_mean),
+    
+    # Median 
+    median_area = median(area_mean),
+    
+    # Standard Deviation
+    stdev_area = sd(area_mean),
+    
+    # Count of observations
+    n = n()
+  )
+
+print(area_summary)
+```
+
+We choose summarizing option 1 to compute the *range*, *mean*, *median*, and *standard deviation* of **area_mean** across the groups of cancer **diagnosis**. This choice directly addresses RQ1, and we summarized area_mean by diagnosis because tumor area is a fundamental size measurement that already integrates radius and perimeter information.
+
+
+**Graphing**
+```{r}
+ggplot(cancer_sample, aes(x = diagnosis, y = area_mean, fill = diagnosis)) +
+  geom_boxplot(alpha = 0.5) +
+  stat_summary(fun = mean, geom = "point", shape = 23, size = 2, fill = "white") +
+  labs(title = "Tumor Area Distribution",
+       x = "Diagnosis",
+       y = "Mean Area") +
+  theme_minimal()
+```
+We choose graphing option 7 to make a graph where it makes sense to customize the alpha transparency. We use a boxplot to visualize the distribution of area_mean across diagnosis groups, which is aligned with our previous *summarizing* part. The plot shows range, median, quantiles, and outliers for both groups, and we adjusted transparency to enhance the visual clarity of mean and quantiles. From the plot, we can tell malignant tumors do tend to have larger measurements compared to benign tumors.
+
+***RQ2***: Are certain shape characteristics (concavity, symmetry, compactness) good indicators of tumor malignancy?
+
+**Summarizing**
+```{r}
+concavity_summary <- cancer_sample %>%
+  group_by(diagnosis) %>%
+  summarise(
+    # Range
+    range = max(concavity_mean) - min(concavity_mean),
+    
+    # Mean
+    mean_concavity = mean(concavity_mean),
+    
+    # Standard deviation
+    sd_concavity = sd(concavity_mean),
+    
+    # Coefficient of variation
+    cv_concavity = (sd_concavity / mean_concavity) * 100,
+    
+    # Count of observations
+    n = n()
+  )
+
+print(concavity_summary)
+```
+We choose summarizing option 1 to compute the *range*, *mean*, *standard deviation*, and *coefficient of variation* of **concavity_mean** across the groups of cancer **diagnosis**. Specifically, we choose concavity since it's a pure shape characteristic that is independent of size. We also added coefficient of variation of concavity to show how consistently concavity can be used to predict diagnosis.
+
+**Graphing**
+```{r}
+ggplot(cancer_sample, aes(x = diagnosis, y = concavity_mean, fill = diagnosis)) +
+  geom_boxplot(alpha = 0.5) +
+  stat_summary(fun = mean, geom = "point", shape = 23, size = 3, fill = "white") +
+  labs(title = "Tumor Concavity Distribution by Diagnosis",
+       x = "Diagnosis",
+       y = "Mean Concavity") +
+  theme_minimal()
+```
+
+We choose graphing option 7 to make a graph where it makes sense to customize the alpha transparency. Same as RQ1, we use a boxplot to visualize the distribution of concavity_mean across diagnosis groups. We adjusted transparency to enhance the visual clarity of mean and quantiles. By using the same visualization approach as in RQ1, we can tell concavity is also a good indicator of tumor malignancy.
+
+**RQ3**: What is the critical threshold value for concavity that best separate malignant from benign tumors?
+
+**Summarizing**
+```{r}
+# Calculate threshold first
+concavity_threshold <- cancer_sample %>%
+  group_by(diagnosis) %>%
+  summarise(median_val = median(concavity_mean)) %>%
+  summarise(threshold = mean(median_val)) %>%
+  pull(threshold)
+
+# Create summary with threshold-based classification
+concavity_threshold_summary <- cancer_sample %>%
+  mutate(
+    # Classify based on threshold
+    predicted_class = ifelse(concavity_mean < concavity_threshold, 
+                             "Below Threshold (Likely Benign)", 
+                             "Above Threshold (Likely Malignant)")
+  ) %>%
+  count(predicted_class, diagnosis) %>%
+  group_by(predicted_class) %>%
+  mutate(
+    total = sum(n), # Result of count() is 'n', not 'count'!
+    percentage = round((n / total) * 100, 2)
+  )
+
+print(concavity_threshold_summary)
+```
+We choose summarizing option 2 to compute the number of observations among threshold-based concavity categories for each diagnosis group. We choose concavity_mean as a representative to identify the best threshold for separating malignant from benign tumors. Moreover, we propose to use the average of median concavity of each diagnosis group as the threshold.
+
+**Graphing**
+```{r}
+# Density plot with threshold
+ggplot(cancer_sample, aes(x = concavity_mean, fill = diagnosis)) +
+  # Layer 1: Density curves
+  geom_density(alpha = 0.5) +
+  # Layer 2: Vertical threshold line
+  geom_vline(xintercept = concavity_threshold, 
+             linetype = "dashed") +
+  labs(title = "Tumor Concavity Distribution with Suggested Threshold",
+       x = "Mean Concavity",
+       y = "Density") +
+  theme_minimal()
+```
+We choose graphing option 8 to create a graph that has at least two geom layers.
+We use the density plot as the first layer shows the distribution of concavity for both tumor types, with the vertical line as a second layer indicating the threshold value we computed in summarizing part.
+
+**RQ4**: Will combination of measurements always improve separation between malignant and benign diagnoses?
+
+**Summarizing**
+```{r}
+# Calculate thresholds following previous RQs
+area_threshold <- cancer_sample %>%
+  group_by(diagnosis) %>%
+  summarise(median_val = median(area_mean)) %>%
+  summarise(threshold = mean(median_val)) %>%
+  pull(threshold)
+
+concavity_threshold <- cancer_sample %>%
+  group_by(diagnosis) %>%
+  summarise(median_val = median(concavity_mean)) %>%
+  summarise(threshold = mean(median_val)) %>%
+  pull(threshold)
+
+cat("Calculated Thresholds:\n")
+cat("Area:", round(area_threshold, 2), "\n")
+cat("Concavity:", round(concavity_threshold, 2), "\n\n")
+```
+
+```{r}
+# Use these thresholds to compare prediction accuracy
+accuracy_summary <- bind_rows(
+  # Area only
+  cancer_sample %>%
+    mutate(correct = (area_mean >= area_threshold & diagnosis == "M") | 
+                     (area_mean < area_threshold & diagnosis == "B")) %>%
+    summarise(Method = "Area Only",
+              Threshold = paste(round(area_threshold, 2)),
+              Accuracy = round(mean(correct) * 100, 2)),
+  
+  # Concavity only
+  cancer_sample %>%
+    mutate(correct = (concavity_mean >= concavity_threshold & diagnosis == "M") | 
+                     (concavity_mean < concavity_threshold & diagnosis == "B")) %>%
+    summarise(Method = "Concavity Only",
+              Threshold = as.character(round(concavity_threshold, 2)),
+              Accuracy = round(mean(correct) * 100, 2)),
+  
+  # Combined
+  cancer_sample %>%
+    mutate(
+      predicted = ifelse(area_mean <= area_threshold & concavity_mean <= concavity_threshold, "B", "M"),
+      correct = (predicted == diagnosis)
+    ) %>%
+    summarise(Method = "Combined (Area + Concavity)",
+              Threshold = "Both",
+              Accuracy = round(mean(correct) * 100, 2))
+)
+
+print(accuracy_summary)
+```
+We choose summarizing option 1&2. First, we compute the *range*, *mean*, *median*, and *standard deviation* of **area_mean** and **concavity_mean** across the groups of cancer **diagnosis** like in RQ1 and RQ2. Then we use the median values to compute the categorization threshold like in RQ3, and compute prediction accuracy using three types of thresholds: area, concavity, and combining area and concavity. From the summary, it is clear that using both area and concavity can improve the prediction accuracy.
+
+
+**Graphing**
+```{r}
+ggplot(cancer_sample, aes(x = area_mean, y = concavity_mean, color = diagnosis)) +
+  # Layer 1: Points
+  geom_point(alpha = 0.5, size = 2) +
+  # Layer 2: Reference lines and shaded regions
+  geom_vline(xintercept = area_threshold, linetype = "dashed") +
+  geom_hline(yintercept = concavity_threshold, linetype = "dashed") +
+  # Add shaded region for high-confidence malignant
+  annotate("rect", xmin = area_threshold, xmax = Inf, 
+           ymin = concavity_threshold, ymax = Inf,
+           alpha = 0.2, fill = "red2") +
+  labs(title = "Combined Measurements: Area + Concavity",
+       x = "Mean Area",
+       y = "Mean Concavity",
+       color = "Diagnosis") +
+  theme_minimal()
+```
+We choose graphing option 8 to create a graph that has at least two geom layers using the thresholds we calculated. The graph clearly illustrates that combining the thresholds increases prediction accuracy compared to using either threshold independently.
 
 <!----------------------------------------------------------------------------->
 
@@ -100,8 +311,7 @@ Make sure it's clear what research question you are doing each operation for!
 Based on the operations that you've completed, how much closer are you to answering your research questions? Think about what aspects of your research questions remain unclear. Can your research questions be refined, now that you've investigated your data a bit more? Which research questions are yielding interesting results?
 
 <!------------------------- Write your answer here ---------------------------->
-
-
+The summarizing and graphing steps have helped address several of my research questions. I have simplified some RQs from milestone 1 to make them more manageable. Particularly, RQ4 yields interesting results, demonstrating that using multiple variables improves prediction accuracy. This finding validates the importance of a multivariate approach to classification. On the other hand, RQ3, which explores threshold choices, has room for further investigation. Future work could examine more complex thresholds rather than solely relying on constant threshold values.
 <!----------------------------------------------------------------------------->
 
 # Task 2: Tidy your data 
@@ -119,7 +329,37 @@ A reminder of the definition of *tidy* data:
 Based on the definition above, can you identify if your data is tidy or untidy? Go through all your columns, or if you have \>8 variables, just pick 8, and explain whether the data is untidy or tidy.
 
 <!--------------------------- Start your work below --------------------------->
+```{r}
+# Criterion 1: Each row is a observation
+# Check if each row represents a unique tumor sample
+cancer_sample %>%
+  summarise(
+    n_rows = n(),
+    n_unique_ids = n_distinct(ID),
+    each_row_unique = n_rows == n_unique_ids
+  )
+```
+```{r}
+# Verify each column represents ONE variable
+cancer_sample %>%
+  summarise(
+    has_ID = "ID" %in% names(.),
+    has_diagnosis = "diagnosis" %in% names(.),
+    has_measurements = any(str_detect(names(.), "mean|se|worst"))
+  )
 
+```
+
+```{r}
+# Criterion 3: Each cell is a value
+# Check that cells contain single values (not multiple values or lists)
+cancer_sample %>%
+  summarise(
+    all_atomic = all(sapply(., is.atomic)),  # Not lists
+    no_list_columns = !any(sapply(., is.list))
+  )
+```
+Therefore, all three criteria are satisfied, the cancer_sample dataset is clean.
 <!----------------------------------------------------------------------------->
 
 ### 2.2 (4 points)
@@ -131,6 +371,29 @@ If your data is untidy, then tidy it! Then, untidy it back to it's original stat
 Be sure to explain your reasoning for this task. Show us the "before" and "after".
 
 <!--------------------------- Start your work below --------------------------->
+**Before tidying**
+```{r}
+# Untidy version: Make it longer (violates one observation per row)
+cancer_untidy <- cancer_sample %>%
+  pivot_longer(
+    cols = radius_mean:fractal_dimension_worst,
+    names_to = "measurement",
+    values_to = "value"
+  )
+
+glimpse(cancer_untidy)
+```
+**After tidying**
+```{r}
+# Tidy back the dataset
+cancer_tidy <- cancer_untidy %>%
+  pivot_wider(
+    names_from = measurement,
+    values_from = value
+  )
+# Verify it matches the original
+all.equal(cancer_sample, cancer_tidy, check.attributes = FALSE)
+```
 
 <!----------------------------------------------------------------------------->
 
@@ -152,6 +415,8 @@ Explain your decision for choosing the above two research questions.
 <!----------------------------------------------------------------------------->
 
 Now, try to choose a version of your data that you think will be appropriate to answer these 2 questions. Use between 4 and 8 functions that we've covered so far (i.e. by filtering, cleaning, tidy'ing, dropping irrelevant columns, etc.).
+
+*If your data is already as tidy as it can be, just explain why the dataset is appropriate and you'll receive full marks. you can ignore the 4 - 8 functions requirements.* (Added accroding to slack anouncement).
 
 (If it makes more sense, then you can make/pick two versions of your data, one for each research question.) 
 
@@ -209,6 +474,25 @@ Take a summary table that you made from Task 1, and write it as a csv file in yo
 -   **Reproducibility criteria**: You should be able to delete the csv file, and remake it simply by knitting this Rmd file.
 
 <!-------------------------- Start your work below ---------------------------->
+```{r}
+# Create output folder if it doesn't exist
+library(here)
+dir.create(here("output"), showWarnings = FALSE)
+
+# Write the summary table to CSV
+write_csv(area_summary, here("output", "area_summary_table.csv"))
+```
+Next, we verify the file we saved by checking it's existence and contents.
+```{r}
+# Check if file exists
+file.exists(here("output", "area_summary_table.csv"))
+```
+
+```{r}
+# Read it back to verify the contents
+library(readr)
+read_csv(here("output", "area_summary_table.csv"))
+```
 
 <!----------------------------------------------------------------------------->
 
