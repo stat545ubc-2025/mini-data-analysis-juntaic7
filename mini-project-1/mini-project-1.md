@@ -569,18 +569,19 @@ Write the 4 questions and any additional comments below.
 
 <!--- *****START HERE***** --->
 
-RQ1: Do malignant tumors have significantly larger measurements (radius,
-area, perimeter) compared to benign tumors?
+*Note: updated version of RQs*
 
-RQ2: Are certain shape characteristics (concavity, symmetry,
-compactness) better indicators of malignancy than size measurements
-alone?
+**RQ1**: Do malignant tumors have significantly larger measurements
+(radius, area, perimeter) compared to benign tumors?
 
-RQ3: What are the critical threshold values for radius and concavity
-that best separate malignant from benign tumors?
+**RQ2**: Are certain shape characteristics (concavity, symmetry,
+compactness) good indicators of tumor malignancy?
 
-RQ4: Which combination of 2-3 tumor measurements provides the clearest
-separation between malignant and benign diagnoses?
+**RQ3**: What is the critical threshold value for concavity that best
+separate malignant from benign tumors?
+
+**RQ4**: Will combination of measurements always improve separation
+between malignant and benign diagnoses?
 
 <!----------------------------->
 

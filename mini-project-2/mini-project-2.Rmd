@@ -1,6 +1,8 @@
 ---
 title: "Mini Data Analysis Milestone 2"
-output: html_document
+output:
+  github_document: default
+  pdf_document: default
 ---
 
 *To complete this milestone, you can edit [this `.rmd` file](https://github.com/UBC-STAT/STAT545.github.io/blob/main/content/mini-data-analysis/mini-project-2.Rmd) directly. Fill in the sections that are commented out with `<!--- start your work here--->`. When you are done, make sure to knit to an `.md` file by changing the output in the YAML header to `github_document`, before submitting a tagged release on canvas.*
@@ -133,7 +135,7 @@ We choose summarizing option 1 to compute the *range*, *mean*, *median*, and *st
 ggplot(cancer_sample, aes(x = diagnosis, y = area_mean, fill = diagnosis)) +
   geom_boxplot(alpha = 0.5) +
   stat_summary(fun = mean, geom = "point", shape = 23, size = 2, fill = "white") +
-  labs(title = "Tumor Area Distribution",
+  labs(title = "Tumor Area Distribution by Diagnosis",
        x = "Diagnosis",
        y = "Mean Area") +
   theme_minimal()
@@ -540,12 +542,14 @@ Write your model object from Task 3 to an R binary file (an RDS), and load it ag
 
 <!-------------------------- Start your work below ---------------------------->
 ```{r}
-saveRDS(model, file = "output/area_radius_model.rds")
-# Load the model object back from the RDS file
-loaded_model <- readRDS("output/area_radius_model.rds")
+# Save& load back the model object to output folder
+saveRDS(model, file = here("output", "area_radius_model.rds"))
+loaded_model <- readRDS(here("output", "area_radius_model.rds"))
 
 # Verify it loaded correctly by printing the summary
 print(summary(loaded_model))
+
+# Check if the loaded model is identical to the original
 identical(model, loaded_model)
 ```
 
