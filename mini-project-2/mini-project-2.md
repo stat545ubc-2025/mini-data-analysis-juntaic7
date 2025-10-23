@@ -97,7 +97,7 @@ compactness) good indicators of tumor malignancy?
 **RQ3**: What is the critical threshold value for concavity that best
 separate malignant from benign tumors?
 
-**RQ4**: Will combination of measurements always improve separation
+**RQ4**: Will combination of measurements always improve separation 
 between malignant and benign diagnoses?
 <!----------------------------------------------------------------------------->
 
