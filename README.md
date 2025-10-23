@@ -4,6 +4,10 @@ This repository contains an exploratory data analysis of the `cancer_sample` dat
 
 ## Structure
 
+- **milestone-1**: Contains dataset selection and exploration, along with the derivation of four research questions
+- **milestone-2**: Contains statistical analyses and visualizations to address the research questions
+- **output**: Contains example outputs generated during data analysis, including figures and model objects
+
 ## Goal
 
 Identify key tumor measurements that can effectively differentiate malignant from benign breast tumors to support early cancer detection research.
