@@ -403,25 +403,28 @@ Now, you should be more familiar with your data, and also have made progress in 
 
 <!-------------------------- Start your work below ---------------------------->
 
-1.  *FILL_THIS_IN*
-2.  *FILL_THIS_IN*
+1.  **RQ3**: What is the critical threshold value for concavity that best separate malignant from benign tumors?
+2. **RQ4**: Will combination of measurements always improve separation between malignant and benign diagnoses?
 
 <!----------------------------------------------------------------------------->
 
 Explain your decision for choosing the above two research questions.
 
 <!--------------------------- Start your work below --------------------------->
-
+I selected RQ3 and RQ4 because they directly relates to tumor diagnosis. RQ3 aims to find the optimal cutoff for a single measurement, while RQ4 investigates whether combining features improves separation between malignant and benign tumors. These questions are complementary and may have practical impact on developing diagnostic criteria.
 <!----------------------------------------------------------------------------->
 
 Now, try to choose a version of your data that you think will be appropriate to answer these 2 questions. Use between 4 and 8 functions that we've covered so far (i.e. by filtering, cleaning, tidy'ing, dropping irrelevant columns, etc.).
 
-*If your data is already as tidy as it can be, just explain why the dataset is appropriate and you'll receive full marks. you can ignore the 4 - 8 functions requirements.* (Added accroding to slack anouncement).
+*If your data is already as tidy as it can be, just explain why the dataset is appropriate and you'll receive full marks. you can ignore the 4 - 8 functions requirements.* (Added according to slack announcement).
 
 (If it makes more sense, then you can make/pick two versions of your data, one for each research question.) 
 
-<!--------------------------- Start your work below --------------------------->
 
+<!--------------------------- Start your work below --------------------------->
+The dataset is already tidy enough, as is shown in our analyses in 2.1. Each row represents a single tumor observation with a unique ID, each column represents a distinct variable (categorical diagnosis or numerical measurement), and each cell contains a single atomic value. For RQ3 and RQ4, I may use the diagnosis and some measurements (concavity_mean, radius_mean, etc.), all of which are already present with no missing values.
+
+<!----------------------------------------------------------------------------->
 # Task 3: Modelling
 
 ## 3.0 (no points)
@@ -430,9 +433,9 @@ Pick a research question from 1.2, and pick a variable of interest (we'll call i
 
 <!-------------------------- Start your work below ---------------------------->
 
-**Research Question**: FILL_THIS_IN
+**Research Question**: Do malignant tumors have significantly larger measurements (radius, area, perimeter) compared to benign tumors? (RQ1)
 
-**Variable of interest**: FILL_THIS_IN
+**Variable of interest**: area_mean and radius_mean. The radius should be capable of representing area to some extent, so we plan to investigate the relationship between them.
 
 <!----------------------------------------------------------------------------->
 
@@ -447,6 +450,16 @@ Fit a model or run a hypothesis test that provides insight on this variable with
     -   You could use `lm()` to test for significance of regression coefficients.
 
 <!-------------------------- Start your work below ---------------------------->
+Intuitively, the tumor should have a circular/elliptical shape, so we will try to fit a quadratic function.
+```{r}
+# Fit a second-order polynomial regression model to predict area_mean from radius_mean
+# Predicting area_mean from radius_mean and radius_mean^2
+model <- lm(area_mean ~ radius_mean + I(radius_mean^2), data = cancer_sample)
+
+# Print the model output
+print(summary(model))
+
+```
 
 <!----------------------------------------------------------------------------->
 
@@ -459,6 +472,29 @@ Produce something relevant from your fitted model: either predictions on Y, or a
 -   Obtain your results using the `broom` package if possible. If your model is not compatible with the broom function you're needing, then you can obtain your results by some other means, but first indicate which broom function is not compatible.
 
 <!-------------------------- Start your work below ---------------------------->
+```{r}
+library(broom)
+# Get the regression coefficients
+model_results <- tidy(model)
+print(model_results)
+
+# This will show three coefficients:
+# - (Intercept): constant intercept
+# - radius_mean: linear coefficient
+# - I(radius_mean^2): 2nd-order coefficient
+```
+The visualization shows our fitted quadratic model. The strong fit validates our assumption, i.e. there is a quadratic relationship between radius and area. This high correlation suggests these two measurements may provide largely redundant information.
+```{r}
+# Visualize the quadratic function
+ggplot(cancer_sample, aes(x = radius_mean, y = area_mean)) +
+  geom_point(aes(color = diagnosis), alpha = 0.6) +
+  geom_smooth(method = "lm", formula = y ~ x + I(x^2), 
+              se = TRUE, color = "blue") +
+  labs(title = "Relationship between Radius & Area",
+       x = "Radius Mean",
+       y = "Area Mean") +
+  theme_minimal()
+```
 
 <!----------------------------------------------------------------------------->
 
@@ -503,6 +539,15 @@ Write your model object from Task 3 to an R binary file (an RDS), and load it ag
 -   The same robustness and reproducibility criteria as in 4.1 apply here.
 
 <!-------------------------- Start your work below ---------------------------->
+```{r}
+saveRDS(model, file = "output/area_radius_model.rds")
+# Load the model object back from the RDS file
+loaded_model <- readRDS("output/area_radius_model.rds")
+
+# Verify it loaded correctly by printing the summary
+print(summary(loaded_model))
+identical(model, loaded_model)
+```
 
 <!----------------------------------------------------------------------------->
 
